@@ -1,70 +1,360 @@
-# Getting Started with Create React App
+# Swagger UI Express
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+| Statements                  | Branches                | Functions                 | Lines                |
+| --------------------------- | ----------------------- | ------------------------- | -------------------- |
+| ![Statements](https://img.shields.io/badge/Coverage-89.87%25-yellow.svg) | ![Branches](https://img.shields.io/badge/Coverage-78.57%25-red.svg) | ![Functions](https://img.shields.io/badge/Coverage-91.67%25-brightgreen.svg) | ![Lines](https://img.shields.io/badge/Coverage-89.74%25-yellow.svg)    |
 
-## Available Scripts
+This module allows you to serve auto-generated [swagger-ui](https://swagger.io/tools/swagger-ui/) generated API docs from express, based on a `swagger.json` file. The result is living documentation for your API hosted from your API server via a route.
 
-In the project directory, you can run:
+Swagger version is pulled from npm module swagger-ui-dist. Please use a lock file or specify the version of swagger-ui-dist you want to ensure it is consistent across environments.
 
-### `npm start`
+You may be also interested in:
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+* [swagger-jsdoc](https://github.com/Surnet/swagger-jsdoc): Allows you to markup routes
+with jsdoc comments. It then produces a full swagger yml config dynamically, which you can pass to this module to produce documentation. See below under the usage section for more info.
+* [swagger tools](https://github.com/swagger-api): Various tools, including swagger editor, swagger code gen etc.
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+## Usage
 
-### `npm test`
+Install using npm:
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+```bash
+$ npm install swagger-ui-express
+```
 
-### `npm run build`
+Express setup `app.js`
+```javascript
+const express = require('express');
+const app = express();
+const swaggerUi = require('swagger-ui-express');
+const swaggerDocument = require('./swagger.json');
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+```
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+or if you are using Express router
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+```javascript
+const router = require('express').Router();
+const swaggerUi = require('swagger-ui-express');
+const swaggerDocument = require('./swagger.json');
 
-### `npm run eject`
+router.use('/api-docs', swaggerUi.serve);
+router.get('/api-docs', swaggerUi.setup(swaggerDocument));
+```
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+Open http://`<app_host>`:`<app_port>`/api-docs in your browser to view the documentation.
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+If you want to set up routing based on the swagger document checkout [swagger-express-router](https://www.npmjs.com/package/swagger-express-router)
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+### [swagger-jsdoc](https://www.npmjs.com/package/swagger-jsdoc)
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+If you are using swagger-jsdoc simply pass the swaggerSpec into the setup function:
 
-## Learn More
+```javascript
+// Initialize swagger-jsdoc -> returns validated swagger spec in json format
+const swaggerSpec = swaggerJSDoc(options);
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+```
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+### Swagger Explorer
 
-### Code Splitting
+By default the Swagger Explorer bar is hidden, to display it pass true as the 'explorer' property of the options to the setup function:
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+```javascript
+const express = require('express');
+const app = express();
+const swaggerUi = require('swagger-ui-express');
+const swaggerDocument = require('./swagger.json');
 
-### Analyzing the Bundle Size
+var options = {
+  explorer: true
+};
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument, options));
+```
 
-### Making a Progressive Web App
+### Custom swagger options
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+To pass custom options e.g. validatorUrl, to the SwaggerUi client pass an object as the 'swaggerOptions' property of the options to the setup function:
 
-### Advanced Configuration
+```javascript
+const express = require('express');
+const app = express();
+const swaggerUi = require('swagger-ui-express');
+const swaggerDocument = require('./swagger.json');
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+var options = {
+  swaggerOptions: {
+    validatorUrl: null
+  }
+};
 
-### Deployment
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument, options));
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+For all the available options, refer to [Swagger UI Configuration](https://github.com/swagger-api/swagger-ui/blob/master/docs/usage/configuration.md)
 
-### `npm run build` fails to minify
+### Custom CSS styles
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+To customize the style of the swagger page, you can pass custom CSS as the 'customCss' property of the options to the setup function.
+
+E.g. to hide the swagger header:
+
+```javascript
+const express = require('express');
+const app = express();
+const swaggerUi = require('swagger-ui-express');
+const swaggerDocument = require('./swagger.json');
+
+var options = {
+  customCss: '.swagger-ui .topbar { display: none }'
+};
+
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument, options));
+```
+
+### Custom CSS styles from Url
+
+You can also pass the url to a custom css file, the value must be the public url of the file and can be relative or absolute to the swagger path.
+
+```javascript
+const express = require('express');
+const app = express();
+const swaggerUi = require('swagger-ui-express');
+const swaggerDocument = require('./swagger.json');
+
+var options = {
+  customCssUrl: '/custom.css'
+};
+
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument, options));
+```
+
+You can also pass an array of css urls to load multiple css files.
+
+```javascript
+const express = require('express');
+const app = express();
+const swaggerUi = require('swagger-ui-express');
+const swaggerDocument = require('./swagger.json');
+
+var options = {
+  customCssUrl: [
+    '/custom.css',
+    'https://example.com/other-custom.css'
+  ]
+};
+
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument, options));
+```
+
+### Custom JS
+
+If you would like to have full control over your HTML you can provide your own javascript file, value accepts absolute or relative path. Value must be the public url of the js file.
+
+```javascript
+const express = require('express');
+const app = express();
+const swaggerUi = require('swagger-ui-express');
+const swaggerDocument = require('./swagger.json');
+
+var options = {
+  customJs: '/custom.js'
+};
+
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument, options));
+```
+
+You can also pass an array of js urls to load multiple js files.
+
+```javascript
+const express = require('express');
+const app = express();
+const swaggerUi = require('swagger-ui-express');
+const swaggerDocument = require('./swagger.json');
+
+var options = {
+  customJs: [
+    '/custom.js',
+    'https://example.com/other-custom.js'
+  ]
+};
+
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument, options));
+```
+
+It is also possible to add inline javascript, either as string or array of string.
+
+```javascript
+const express = require('express');
+const app = express();
+const swaggerUi = require('swagger-ui-express');
+const swaggerDocument = require('./swagger.json');
+
+var options = {
+  customJsStr: 'console.log("Hello World")'
+};
+
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument, options));
+```
+
+```javascript
+const express = require('express');
+const app = express();
+const swaggerUi = require('swagger-ui-express');
+const swaggerDocument = require('./swagger.json');
+
+var options = {
+  customJsStr: [
+    'console.log("Hello World")',
+    `
+    var x = 1
+    console.log(x)
+    `
+  ]
+};
+
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument, options));
+```
+
+### Load swagger from url
+
+To load your swagger from a url instead of injecting the document, pass `null` as the first parameter, and pass the relative or absolute URL as the 'url' property to 'swaggerOptions' in the setup function.
+
+```javascript
+const express = require('express');
+const app = express();
+const swaggerUi = require('swagger-ui-express');
+
+var options = {
+  swaggerOptions: {
+    url: 'http://petstore.swagger.io/v2/swagger.json'
+  }
+}
+
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(null, options));
+```
+
+To load multiple swagger documents from urls as a dropdown in the explorer bar, pass an array of object with `name` and `url` to 'urls' property to 'swaggerOptions' in the setup function.
+
+```javascript
+const express = require('express');
+const app = express();
+const swaggerUi = require('swagger-ui-express');
+
+var options = {
+  explorer: true,
+  swaggerOptions: {
+    urls: [
+      {
+        url: 'http://petstore.swagger.io/v2/swagger.json',
+        name: 'Spec1'
+      },
+      {
+        url: 'http://petstore.swagger.io/v2/swagger.json',
+        name: 'Spec2'
+      }
+    ]
+  }
+}
+
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(null, options));
+```
+
+Make sure 'explorer' option is set to 'true' in your setup options for the dropdown to be visible.
+
+
+### Load swagger from yaml file
+
+To load your swagger specification yaml file you need to use a module able to convert yaml to json; for instance `yaml`.
+
+    npm install yaml
+
+```javascript
+const express = require('express');
+const app = express();
+const swaggerUi = require('swagger-ui-express');
+const fs = require("fs")
+const YAML = require('yaml')
+
+const file  = fs.readFileSync('./swagger.yaml', 'utf8')
+const swaggerDocument = YAML.parse(file)
+
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+```
+
+
+### Modify swagger file on the fly before load
+
+To dynamically set the host, or any other content, in the swagger file based on the incoming request object you may pass the json via the req object; to achieve this just do not pass the the swagger json to the setup function and it will look for `swaggerDoc` in the `req` object.
+
+```javascript
+const express = require('express');
+const app = express();
+const swaggerUi = require('swagger-ui-express');
+const swaggerDocument = require('./swagger.json');
+
+var options = {}
+
+app.use('/api-docs', function(req, res, next){
+    swaggerDocument.host = req.get('host');
+    req.swaggerDoc = swaggerDocument;
+    next();
+}, swaggerUi.serveFiles(swaggerDocument, options), swaggerUi.setup());
+```
+
+### Two swagger documents
+
+To run 2 swagger ui instances with different swagger documents, use the serveFiles function instead of the serve function. The serveFiles function has the same signature as the setup function.
+
+```javascript
+const express = require('express');
+const app = express();
+const swaggerUi = require('swagger-ui-express');
+const swaggerDocumentOne = require('./swagger-one.json');
+const swaggerDocumentTwo = require('./swagger-two.json');
+
+var options = {}
+
+app.use('/api-docs-one', swaggerUi.serveFiles(swaggerDocumentOne, options), swaggerUi.setup(swaggerDocumentOne));
+
+app.use('/api-docs-two', swaggerUi.serveFiles(swaggerDocumentTwo, options), swaggerUi.setup(swaggerDocumentTwo));
+
+app.use('/api-docs-dynamic', function(req, res, next){
+  req.swaggerDoc = swaggerDocument;
+  next();
+}, swaggerUi.serveFiles(), swaggerUi.setup());
+```
+
+### Link to Swagger document
+
+To render a link to the swagger document for downloading within the swagger ui - then serve the swagger doc as an endpoint and use the url option to point to it:
+
+```javascript
+const express = require('express');
+const app = express();
+const swaggerUi = require('swagger-ui-express');
+const swaggerDocument = require('./swagger.json');
+
+var options = {
+    swaggerOptions: {
+        url: "/api-docs/swagger.json",
+    },
+}
+app.get("/api-docs/swagger.json", (req, res) => res.json(swaggerDocument));
+app.use('/api-docs', swaggerUi.serveFiles(null, options), swaggerUi.setup(null, options));
+```
+
+
+## Requirements
+
+* Node v0.10.32 or above
+* Express 4 or above
+
+## Testing
+
+* Install phantom
+* `npm install`
+* `npm test`
