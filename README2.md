@@ -1,51 +1,188 @@
-# Swagger UI Express
+# XiteCore API 문서화 With Swagger
 
-| Statements                  | Branches                | Functions                 | Lines                |
-| --------------------------- | ----------------------- | ------------------------- | -------------------- |
-| ![Statements](https://img.shields.io/badge/Coverage-89.87%25-yellow.svg) | ![Branches](https://img.shields.io/badge/Coverage-78.57%25-red.svg) | ![Functions](https://img.shields.io/badge/Coverage-91.67%25-brightgreen.svg) | ![Lines](https://img.shields.io/badge/Coverage-89.74%25-yellow.svg)    |
+## Library
+* [swagger-ui-express](https://github.com/scottie1984/swagger-ui-express) : Express에서 생성된 [swagger-ui](https://swagger.io/tools/swagger-ui/) API 문서 제공을 쉽게 도와준다.
+* [swagger-jsdoc](https://github.com/Surnet/swagger-jsdoc) : jsdoc 주석으로 router를 마크업하고 swagger yml을 생성하며 이 모듈로 문서를 생성할 수 있다.
 
-This module allows you to serve auto-generated [swagger-ui](https://swagger.io/tools/swagger-ui/) generated API docs from express, based on a `swagger.json` file. The result is living documentation for your API hosted from your API server via a route.
+[swagger-ui](https://swagger.io/tools/swagger-ui/) : API 정의를 작성하고 시각화하여 클라우드에서 호스팅되는 UI를 생성하여 내부 개발자, 외부 소비자 등에게 API 문서에 대한 액세스를 제공할 수 있다.
 
-Swagger version is pulled from npm module swagger-ui-dist. Please use a lock file or specify the version of swagger-ui-dist you want to ensure it is consistent across environments.
-
-You may be also interested in:
-
-* [swagger-jsdoc](https://github.com/Surnet/swagger-jsdoc): Allows you to markup routes
-with jsdoc comments. It then produces a full swagger yml config dynamically, which you can pass to this module to produce documentation. See below under the usage section for more info.
-* [swagger tools](https://github.com/swagger-api): Various tools, including swagger editor, swagger code gen etc.
+```bash
+"devDependencies": {
+  "swagger-jsdoc": "^6.2.8",
+  "swagger-ui-express": "^4.6.0"
+}
+```
 
 ## Usage
 
-Install using npm:
-
-```bash
-$ npm install swagger-ui-express
-```
-
-Express setup `app.js`
+일반적인 사용법
+Express setup
 ```javascript
+// 모듈 추가
 const express = require('express');
-const app = express();
-const swaggerUi = require('swagger-ui-express');
-const swaggerDocument = require('./swagger.json');
+const swaggerJsdoc = require("swagger-jsdoc");
+const swaggerUi = require("swagger-ui-express");
 
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+const app = express();
+// Swagger-ui 옵션
+const options = {
+  definition: {
+    openapi: "3.0.0",
+    info: {
+      title: "제목",
+      version: "0.0.1",
+      description: "설명",
+      license: {
+        // 라이센스
+      },
+    },
+    servers: [
+      // api 서버
+    ],
+  },
+  apis: // router 파일 연동,
+};
+
+const specs = swaggerJsdoc(options);
+// swagger api router, swagger-ui 설정 및 생성
+app.use("/api-docs",
+  swaggerUi.serve,
+  swaggerUi.setup(specs)
+);
+
+module.exports = app;
 ```
 
-or if you are using Express router
+문서 작성
+[swagger-docs](https://swagger.io/docs/specification/about/)
+```yaml
+paths:
+  /users{id}:
+    get:
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: array
+            items:
+              type: integer
+            minItems: 1
+          style: matrix
+          explode: true
+        - in: query
+          name: metadata
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: A list of users
+```
+
+or 
 
 ```javascript
-const router = require('express').Router();
-const swaggerUi = require('swagger-ui-express');
-const swaggerDocument = require('./swagger.json');
+/** 
+* @swagger
+*     components:
+*         schemas:
+*             Book:
+*                 type: object
+*                 required:
+*                     - title
+*                     - author
+*                     - finished
+*                 properties:
+*                     id:
+*                         type: integer
+*                         description: The auto-generated id of the book.
+*                     title:
+*                         type: string
+*                         description: The title of your book.
+*                     author:
+*                         type: string
+*                         description: Who wrote the book?
+*                     finished:
+*                         type: boolean
+*                         description: Have you finished reading it?
+*                     createdAt:
+*                         type: string
+*                         format: date
+*                         description: The date of the record creation.
+*                     example:
+*                         title: The Pragmatic Programmer
+*                         author: Andy Hunt / Dave Thomas
+*                         finished: true
+*/
+```
+or
 
-router.use('/api-docs', swaggerUi.serve);
-router.get('/api-docs', swaggerUi.setup(swaggerDocument));
+```json
+// 주소
+"/pet/{petId}": {
+      // 통신 메서드
+      "get": {
+        // 그룹명
+        "tags": [
+          "pet"
+        ],
+        // 주소 옆에 설명
+        "summary": "Find pet by ID",
+        "description": "Returns a single pet",
+        "operationId": "getPetById",
+        "parameters": [
+          {
+            "name": "petId",
+            "in": "path",
+            "description": "ID of pet to return",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        // 응답에 대한 설정
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/Pet"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Pet"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid ID supplied",
+            "content": {}
+          },
+          "404": {
+            "description": "Pet not found",
+            "content": {}
+          }
+        },
+        // 선언한 전역 객체로 제한 사항을 걸고자 하면 여기에 기재
+        "security": [
+          {
+            "api_key": []
+          }
+        ]
+      },
+    }
 ```
 
-Open http://`<app_host>`:`<app_port>`/api-docs in your browser to view the documentation.
+서버를 열고 http://`<app_host>`:`<app_port>`/api-docs url 을 통해 접근하면 swagger-ui로 만들어진 ui를 통해 api 문서 엑세스가 가능해진다.
 
-If you want to set up routing based on the swagger document checkout [swagger-express-router](https://www.npmjs.com/package/swagger-express-router)
+### JavaScript code 작성을 통한 API 문서 작성
+여기서 js-doc를 통한 주석 작성이나 yaml, json 파일 작성은 그에 따른 장점도 있으나, 작성에 소비되는 시간과 노력이 크다.
+그에 따라 JavaScript code를 통해서 규격에 맞는 문서를 작성하고 json으로 반환하여 문서화하는 설정.
 
 ### [swagger-jsdoc](https://www.npmjs.com/package/swagger-jsdoc)
 
